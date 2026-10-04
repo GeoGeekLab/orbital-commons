@@ -10,6 +10,17 @@
   </a>
 </p>
 
+## Instrument capabilities
+
+*ORBITAL COMMONS* provides an interactive environment for working with the active satellite catalog as a propagated geospatial system.
+
+- **Explore the orbital population.** Display active catalog objects in a three-dimensional Earth-orbit reference view and examine the spatial organization of the catalog.
+- **Filter by orbital regime.** Isolate low-, medium-, geosynchronous-, and higher-altitude orbital populations to compare occupancy and spatial structure.
+- **Propagate through UTC.** Advance or offset the analysis epoch and recompute satellite positions from their mean-element states with SGP4/SDP4 propagation.
+- **Inspect individual spacecraft.** Select a catalog object and examine identity, element epoch, orbital parameters, propagated position, and regime classification.
+- **Examine orbit and ground relation.** Trace the selected orbital path and evaluate its changing geometric relation to the rotating Earth and a terrestrial observer.
+- **Use the view as an analytical instrument.** Search, select, rotate, zoom, and change time while keeping catalog state, epoch, and observer geometry synchronized.
+
 ## Scientific focus
 
 The instrument addresses a core problem in orbital geography: how a catalogued orbital state becomes a spatial relation at a specified epoch. Users can inspect the distribution of active objects, stratify the population by orbital regime, propagate the catalog through UTC, and examine the geometric relation between a selected spacecraft and an observer on Earth.
