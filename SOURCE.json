@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "role": "entrypoint",
+  "source_repository": "GeoGeekLab/GeoGeekLab.github.io",
+  "source_commit": "d949bd75870bfd49f6d12b297e6cca02de107f9c",
+  "runtime": [
+    "site/orbital/orbital-engine.js"
+  ],
+  "upgrade_policy": "explicit"
+}
