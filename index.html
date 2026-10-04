@@ -1,32 +1,26 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#07100c"><title>Orbital Commons — GeoGeek Observatory</title><style>:root{--bg:#07100c;--paper:#f1efe7;--muted:rgba(241,239,231,.58);--line:rgba(241,239,231,.12);--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--paper);font-family:var(--sans)}body{min-height:100vh;display:grid;grid-template-rows:auto 1fr auto}.top,.foot{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line);font:700 9px/1.35 var(--mono);letter-spacing:.08em}.top a{color:inherit;text-decoration:none}.top span,.foot{color:var(--muted)}main{min-height:0;padding:10px}.stage{height:calc(100vh - 92px);min-height:660px}.instrument-loading,.instrument-error{height:100%;display:grid;place-content:center;gap:10px;text-align:center;color:var(--muted)}.instrument-error strong,.instrument-loading strong{color:var(--paper)}.foot{border-top:1px solid var(--line);border-bottom:0}@media(max-width:760px){main{padding:6px}.stage{height:auto;min-height:980px}.top,.foot{padding:12px}}</style></head><body>
-<header class="top"><a href="https://geogeeklab.github.io/lab.html">GEOGEEK / OBSERVATORY</a><span id="runtimeStatus">PRODUCTION RUNTIME / 3D + WORKER</span></header>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#07100c"><base href="https://geogeeklab.github.io/"><title>Orbital Commons — GeoGeek Observatory</title><style>:root{--bg:#07100c;--paper:#f1efe7;--muted:rgba(241,239,231,.58);--line:rgba(241,239,231,.12);--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--paper);font-family:var(--sans)}body{min-height:100vh;display:grid;grid-template-rows:auto 1fr auto}.top,.foot{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line);font:700 9px/1.35 var(--mono);letter-spacing:.08em}.top a{color:inherit;text-decoration:none}.top span,.foot{color:var(--muted)}main{min-height:0;padding:10px}.stage{height:calc(100vh - 92px);min-height:660px}.instrument-loading,.instrument-error{height:100%;display:grid;place-content:center;gap:10px;text-align:center;color:var(--muted)}.instrument-error strong,.instrument-loading strong{color:var(--paper)}.foot{border-top:1px solid var(--line);border-bottom:0}@media(max-width:760px){main{padding:6px}.stage{height:auto;min-height:980px}.top,.foot{padding:12px}}</style></head><body>
+<header class="top"><a href="https://geogeeklab.github.io/lab.html">GEOGEEK / OBSERVATORY</a><span id="runtimeStatus">PRODUCTION RUNTIME / SAME-ORIGIN</span></header>
 <main><div id="instrumentStage" class="stage" aria-live="polite"><div class="instrument-loading"><strong>Loading orbital production runtime…</strong></div></div></main>
-<footer class="foot"><span>GeoGeek · Geo to see. Geek to build.</span><span>CELESTRAK / SGP4-SDP4 / THREE.JS</span></footer>
+<footer class="foot"><span>GeoGeek · Geo to see. Geek to build.</span><span>CELESTRAK SNAPSHOT / SGP4-SDP4 / THREE.JS</span></footer>
 <script type="module">
-const BASE='https://cdn.jsdelivr.net/gh/GeoGeekLab/GeoGeekLab.github.io@d949bd75870bfd49f6d12b297e6cca02de107f9c/site';
+const SOURCE_REVISION='064ce2c718499fc26a744a9e58cad09d97a323fb';
+const ENTRY=`https://geogeeklab.github.io/core/observatory-entry.js?v=${SOURCE_REVISION}`;
 const stage=document.getElementById('instrumentStage');
 const status=document.getElementById('runtimeStatus');
 const controller=new AbortController();
-const NativeWorker=window.Worker;
-window.Worker=function(url,options={}){
-  const resolved=new URL(url,location.href);
-  if(resolved.origin===location.origin) return new NativeWorker(resolved,options);
-  const bootstrap=new Blob([`import ${JSON.stringify(resolved.href)};`],{type:'text/javascript'});
-  const bootstrapUrl=URL.createObjectURL(bootstrap);
-  const worker=new NativeWorker(bootstrapUrl,{...options,type:'module'});
-  setTimeout(()=>URL.revokeObjectURL(bootstrapUrl),60000);
-  return worker;
-};
 let cleanup=null;
+const syncStatus=()=>{const info=window.GeoDataSupply?.describe?.('orbit-active');status.textContent=info?.stale?'CATALOG / STALE SNAPSHOT':'CATALOG / SAME-ORIGIN SNAPSHOT';};
 try{
-  const runtime=await import(`${BASE}/orbital/orbital-engine.js`);
-  cleanup=await runtime.mountOrbitalLab({container:stage,signal:controller.signal,statusCallback:s=>{status.textContent=s?.live?'CATALOG / LIVE':'CATALOG / CACHED';}});
+  const runtime=await import(ENTRY);
+  cleanup=await runtime.mountObservatoryInstrument('orbit',{stage,signal:controller.signal,statusCallback:syncStatus});
+  syncStatus();
+  stage.dataset.runtimeReady='true';
 }catch(error){
   stage.innerHTML=`<div class="instrument-error"><strong>Orbital production runtime unavailable.</strong><span>${String(error?.message||error)}</span></div>`;
   status.textContent='RUNTIME / ERROR';
-}finally{
-  window.Worker=NativeWorker;
 }
 addEventListener('pagehide',()=>{controller.abort();try{cleanup?.()}catch{}},{once:true});
-</script></body></html>
+</script>
+<!-- PRODUCTION 064ce2c718499fc26a744a9e58cad09d97a323fb -->
+</body></html>
