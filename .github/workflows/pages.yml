@@ -47,7 +47,7 @@ jobs:
           test -s index.html
           grep -qi '<!doctype html>' index.html
           grep -q 'PRODUCTION' index.html
-      - name: Capture instrument figure
+      - name: Capture instrument figure and audit links
         shell: bash
         run: |
           set -euo pipefail
@@ -67,6 +67,28 @@ jobs:
             --wait-for-timeout 15000 \
             http://127.0.0.1:8000/ assets/instrument.png
           test -s assets/instrument.png
+          cat > instrument-links.spec.cjs <<'JS'
+          const { test } = require('@playwright/test');
+          test('audit rendered instrument links', async ({ page, request }) => {
+            await page.goto('http://127.0.0.1:8000/', { waitUntil: 'domcontentloaded', timeout: 60000 });
+            await page.waitForTimeout(15000);
+            const links = await page.locator('a[href]').evaluateAll(nodes => nodes.map(a => ({
+              text: (a.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 120),
+              href: a.href
+            })).filter(x => /^https?:/i.test(x.href)));
+            console.log('INSTRUMENT_LINK_COUNT=' + links.length);
+            for (const link of links) {
+              try {
+                const response = await request.get(link.href, { timeout: 20000, failOnStatusCode: false, maxRedirects: 8 });
+                console.log(`INSTRUMENT_LINK status=${response.status()} href=${link.href} text=${JSON.stringify(link.text)}`);
+              } catch (error) {
+                console.log(`INSTRUMENT_LINK status=ERROR href=${link.href} text=${JSON.stringify(link.text)} error=${JSON.stringify(String(error.message || error))}`);
+              }
+            }
+          });
+          JS
+          npx --yes @playwright/test@1.55.0 test instrument-links.spec.cjs --reporter=line --workers=1
+          rm -f instrument-links.spec.cjs
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
