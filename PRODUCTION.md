@@ -1,24 +1,25 @@
 # Production contract
 
-## Runtime baseline
+`orbital-commons` is the public entrypoint for the production *ORBITAL COMMONS* instrument.
 
-This repository deploys the Orbital Commons production instrument from `GeoGeekLab/GeoGeekLab.github.io` pinned to commit `d949bd75870bfd49f6d12b297e6cca02de107f9c`.
+## Runtime
 
-The standalone shell mounts `site/orbital/orbital-engine.js`. The engine uses Three.js and a module Web Worker running satellite.js 6.0.2.
+- Source repository: `GeoGeekLab/GeoGeekLab.github.io`
+- Tested source revision: `064ce2c718499fc26a744a9e58cad09d97a323fb`
+- Production channel: `https://geogeeklab.github.io/`
+- Shared bootstrap: `/core/observatory-entry.js`
+- Orbital runtime: `/orbital/orbital-engine.js`
+- Propagation worker: `/orbital/orbit-worker.js`
+- Provider control: `/core/provider-stability.js` + `/core/data-supply.js`
 
-## Data contract
+The entrypoint loads the runtime from the same GitHub Pages origin as the main Observatory. The worker, runtime modules, catalog snapshot, metadata, and supporting assets therefore share one production origin.
 
-- Upstream catalog: CelesTrak active GP elements in CCSDS OMM JSON.
-- Propagation: SGP4 / SDP4 through satellite.js.
-- Browser cache: the production engine can reuse a recent or stale cached catalog when the upstream catalog is unavailable.
-- Time: user-controlled UTC propagation time.
+## Orbital data supply
 
-## Interpretation limits
+CelesTrak active GP/OMM data is refreshed by the main-site scheduled data-supply workflow and published as the same-origin `orbit-active` snapshot. Snapshot metadata records retrieval time, record count, and content digest. The production browser consumes that snapshot through the unified Data Supply adapter.
 
-Displayed positions are model-propagated positions from general perturbation elements. They are not precision ephemerides or authoritative space-surveillance positions. Element age and catalog quality vary by object.
+`unified-supply-v2` clears the legacy `geogeek-orbit-v2` browser catalog cache when the source contract changes, then aligns browser cache age with the deployed snapshot metadata.
 
-## Deployment contract
+## Release checks
 
-`main` deploys through GitHub Pages Actions. The workflow rejects an empty or non-production `index.html` before upload.
-
-The production runtime is version-pinned. Updating the source baseline requires an explicit change to the pinned commit SHA in `index.html`.
+The repository validates the source revision, shared bootstrap reference, Chromium instrument mount, absence of `.instrument-error`, provider/Data Supply installation, instrument screenshot, Pages deployment, and the deployed public endpoint.
