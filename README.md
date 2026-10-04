@@ -1,33 +1,38 @@
 # Orbital Commons
 
-**Orbital catalog · propagation · observer geometry**
+**Orbital catalog · mean elements · SGP4/SDP4 propagation · observer geometry**
 
-Orbital Commons is a geospatial instrument for examining the active artificial-satellite population as a time-dependent spatial field. It couples a catalog of general perturbation elements with SGP4/SDP4 propagation so that orbital state, epoch, orbital regime, and ground-relative geometry can be explored within one analytical view.
+*ORBITAL COMMONS* is a geospatial instrument for examining the active artificial-satellite population as a time-dependent orbital field. It connects standardized mean-element records, propagation epoch, orbital regime, and terrestrial observer geometry within one analytical view.
 
-![Orbital Commons instrument](https://geogeeklab.github.io/orbital-commons/assets/instrument.png)
+[![Orbital Commons instrument](https://geogeeklab.github.io/orbital-commons/assets/instrument.png)](https://geogeeklab.github.io/orbital-commons/)
 
 ## Scientific focus
 
-The instrument addresses a basic problem in orbital geography: how a catalog record becomes a spatial relation at a specified time. Users can inspect the distribution of active objects, filter by orbital regime, propagate the catalog through UTC, and examine the relation between a selected object and an observer on Earth.
+The instrument addresses a core problem in orbital geography: how a catalogued orbital state becomes a spatial relation at a specified epoch. Users can inspect the distribution of active objects, stratify the population by orbital regime, propagate the catalog through UTC, and examine the geometric relation between a selected spacecraft and an observer on Earth.
 
-The resulting view is useful for exploratory analysis of orbital population structure, temporal change in propagated state, and the geometry connecting spaceborne objects with terrestrial locations.
+The analytical object is therefore not a static point cloud. It is a population of mean-element states whose positions change as a function of propagation time. This supports exploratory analysis of orbital-population structure, altitude-regime occupancy, time-dependent ground relation, and the spatial organization of Earth-orbiting infrastructure.
 
-## Data and methods
+## Orbital data model
 
-| Component | Method |
+| Component | Specification |
 | --- | --- |
-| Orbital catalog | CelesTrak active GP elements in CCSDS OMM JSON |
-| Propagation | SGP4 / SDP4 through `satellite.js` |
-| Temporal reference | User-selected UTC epoch |
-| Visualization | Three-dimensional orbital field with class filtering and object inspection |
-| Ground relation | Observer-based geometric relation for the selected object |
+| Catalog source | [CelesTrak General Perturbations (GP) data](https://celestrak.org/NORAD/elements/) |
+| Exchange format | [CCSDS Orbit Mean-Elements Message (OMM), CCSDS 502.0-B-3](https://ccsds.org/Pubs/502x0b3e1.pdf), delivered as JSON |
+| Mean-element state | Epoch, mean motion, eccentricity, inclination, right ascension of ascending node, argument of pericenter, mean anomaly, and associated perturbation terms |
+| Propagation | SGP4 / SDP4 via [`satellite.js`](https://github.com/shashwatak/satellite-js) |
+| Temporal reference | User-selected UTC propagation epoch |
+| Spatial interpretation | Propagated geocentric state combined with orbital-regime classification and observer-relative geometry |
 
-The displayed positions are model-derived states propagated from general perturbation elements. Their scientific meaning therefore depends on element epoch, catalog maintenance, and propagation time.
+[CelesTrak's OMM/GP interface](https://celestrak.org/NORAD/documentation/gp-data-formats.php) exposes GP data in a standards-oriented format that preserves the mean-element semantics required by SGP4/SDP4. The propagated state is evaluated relative to the element epoch, so catalog recency and propagation interval are part of the analytical context.
+
+## Geospatial interpretation
+
+The instrument links orbital mechanics with geographic reference. A selected object can be examined as a propagated Earth-orbiting state and as a relation to a terrestrial observer, connecting orbital elements to ground-relative geometry. This makes epoch, reference frame, orbital regime, and observer location explicit analytical variables rather than hidden display parameters.
 
 ## Instrument access
 
 **Live instrument:** https://geogeeklab.github.io/orbital-commons/
 
-Orbital Commons is an entrypoint repository. The production runtime is maintained in `GeoGeekLab/GeoGeekLab.github.io` and pinned here to an explicit source commit. `SOURCE.json` records that upstream version in machine-readable form; `PRODUCTION.md` documents the runtime and data contract.
+*ORBITAL COMMONS* is a public entrypoint to the production runtime maintained in [`GeoGeekLab/GeoGeekLab.github.io`](https://github.com/GeoGeekLab/GeoGeekLab.github.io). [`SOURCE.json`](./SOURCE.json) records the pinned upstream revision, and [`PRODUCTION.md`](./PRODUCTION.md) documents the runtime and orbital-data contract.
 
-*GeoGeek note — an orbit is a relation among state, epoch, and observer.*
+*GeoGeek note — an orbit is a relation among state, epoch, reference frame, and observer.*
