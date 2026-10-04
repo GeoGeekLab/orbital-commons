@@ -23,6 +23,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Static contract checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s index.html
+          grep -qi '<!doctype html>' index.html
+          grep -q 'PRODUCTION' index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
