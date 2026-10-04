@@ -67,9 +67,12 @@ jobs:
             --wait-for-timeout 15000 \
             http://127.0.0.1:8000/ assets/instrument.png
           test -s assets/instrument.png
-          cat > instrument-links.spec.cjs <<'JS'
-          const { test } = require('@playwright/test');
-          test('audit rendered instrument links', async ({ page, request }) => {
+          npm install --no-save --no-package-lock playwright@1.55.0 >/tmp/playwright-npm.log 2>&1
+          cat > instrument-link-audit.cjs <<'JS'
+          const { chromium, request } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 1600, height: 800 } });
             await page.goto('http://127.0.0.1:8000/', { waitUntil: 'domcontentloaded', timeout: 60000 });
             await page.waitForTimeout(15000);
             const links = await page.locator('a[href]').evaluateAll(nodes => nodes.map(a => ({
@@ -77,18 +80,22 @@ jobs:
               href: a.href
             })).filter(x => /^https?:/i.test(x.href)));
             console.log('INSTRUMENT_LINK_COUNT=' + links.length);
+            const api = await request.newContext({ ignoreHTTPSErrors: true });
             for (const link of links) {
               try {
-                const response = await request.get(link.href, { timeout: 20000, failOnStatusCode: false, maxRedirects: 8 });
+                const response = await api.get(link.href, { timeout: 20000, failOnStatusCode: false, maxRedirects: 8 });
                 console.log(`INSTRUMENT_LINK status=${response.status()} href=${link.href} text=${JSON.stringify(link.text)}`);
               } catch (error) {
                 console.log(`INSTRUMENT_LINK status=ERROR href=${link.href} text=${JSON.stringify(link.text)} error=${JSON.stringify(String(error.message || error))}`);
               }
             }
-          });
+            await api.dispose();
+            await browser.close();
+          })().catch(error => { console.error(error); process.exit(1); });
           JS
-          npx --yes @playwright/test@1.55.0 test instrument-links.spec.cjs --reporter=line --workers=1
-          rm -f instrument-links.spec.cjs
+          node instrument-link-audit.cjs
+          rm -f instrument-link-audit.cjs
+          rm -rf node_modules
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
