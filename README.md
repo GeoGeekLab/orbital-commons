@@ -4,7 +4,11 @@
 
 *ORBITAL COMMONS* is a geospatial instrument for examining the active artificial-satellite population as a time-dependent orbital field. It connects standardized mean-element records, propagation epoch, orbital regime, and terrestrial observer geometry within one analytical view.
 
-[![Orbital Commons instrument](https://geogeeklab.github.io/orbital-commons/assets/instrument.png)](https://geogeeklab.github.io/orbital-commons/)
+<p align="center">
+  <a href="https://geogeeklab.github.io/orbital-commons/">
+    <img src="https://geogeeklab.github.io/orbital-commons/assets/instrument.png" alt="Orbital Commons instrument" width="720">
+  </a>
+</p>
 
 ## Scientific focus
 
