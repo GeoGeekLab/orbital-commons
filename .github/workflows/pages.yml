@@ -74,21 +74,22 @@ jobs:
             const browser = await chromium.launch({ headless: true });
             const page = await browser.newPage({ viewport: { width: 1600, height: 800 } });
             await page.goto('http://127.0.0.1:8000/', { waitUntil: 'domcontentloaded', timeout: 60000 });
-            await page.waitForTimeout(15000);
+            await page.waitForTimeout(12000);
             const links = await page.locator('a[href]').evaluateAll(nodes => nodes.map(a => ({
               text: (a.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 120),
               href: a.href
             })).filter(x => /^https?:/i.test(x.href)));
-            console.log('INSTRUMENT_LINK_COUNT=' + links.length);
+            const unique = [...new Map(links.map(x => [x.href, x])).values()];
+            console.log('INSTRUMENT_LINK_COUNT=' + unique.length);
             const api = await request.newContext({ ignoreHTTPSErrors: true });
-            for (const link of links) {
+            await Promise.all(unique.map(async link => {
               try {
-                const response = await api.get(link.href, { timeout: 20000, failOnStatusCode: false, maxRedirects: 8 });
+                const response = await api.get(link.href, { timeout: 8000, failOnStatusCode: false, maxRedirects: 8 });
                 console.log(`INSTRUMENT_LINK status=${response.status()} href=${link.href} text=${JSON.stringify(link.text)}`);
               } catch (error) {
                 console.log(`INSTRUMENT_LINK status=ERROR href=${link.href} text=${JSON.stringify(link.text)} error=${JSON.stringify(String(error.message || error))}`);
               }
-            }
+            }));
             await api.dispose();
             await browser.close();
           })().catch(error => { console.error(error); process.exit(1); });
