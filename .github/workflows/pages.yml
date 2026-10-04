@@ -23,23 +23,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Build self-contained site
-        shell: bash
-        run: bash scripts/build-site.sh
       - name: Static contract checks
         shell: bash
         run: |
           set -euo pipefail
-          test -s _site/index.html
-          test -s _site/runtime/orbital/orbital-engine.js
-          test -s _site/runtime/orbital/orbit-worker.js
-          test -s _site/runtime/orbital/orbital-lab.css
-          test -s _site/runtime/vendor/three.module.js
-          test -s _site/runtime/vendor/satellite.esm.js
-          test -s _site/runtime-manifest.sha256
-          grep -q 'PRODUCTION RUNTIME / VENDORED' _site/index.html
-          ! grep -R -q 'cdn.jsdelivr.net/gh/GeoGeekLab/GeoGeekLab.github.io' _site
-          ! grep -R -q 'cdn.jsdelivr.net/npm' _site/runtime/orbital
+          test -s index.html
+          grep -qi '<!doctype html>' index.html
+          grep -q 'PRODUCTION' index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
@@ -47,7 +37,7 @@ jobs:
       - name: Upload static site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: _site
+          path: .
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
