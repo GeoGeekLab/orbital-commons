@@ -1,29 +1,59 @@
 # Orbital Commons
 
-**Catalog / orbit / ground relation.**
+**Catalog / orbit / ground relation**
 
-Orbital Commons is an independent GeoGeek Observatory deployment of the production orbital instrument. It renders the active orbital field in 3D, propagates OMM elements with SGP4/SDP4, supports time control and orbital-class filtering, and relates selected objects to an observer on Earth.
+Orbital Commons is an observing instrument for reading the active artificial-satellite population as a changing spatial system. It combines a public orbital catalog with time-dependent propagation so users can compare orbital regimes, inspect individual objects, and relate motion in space to a viewpoint on Earth.
 
-## Public instrument
+> **GeoGeek principle:** An orbit is not a dot. It is a model, a time, and a viewpoint.
 
+## Mission
+
+The project is designed to make three things visible at the same time: what objects are in the catalog, how their modeled positions change with time, and how that geometry relates to the ground.
+
+The instrument is not intended to reproduce a space-surveillance display. Its purpose is comparative observation: seeing structure in the catalog, testing orbital intuition, and keeping the distinction between source elements and propagated position explicit.
+
+## Observation system
+
+| Element | Operational definition |
+| --- | --- |
+| Catalog | CelesTrak active GP elements in CCSDS OMM JSON |
+| Propagation | SGP4 / SDP4 through `satellite.js` |
+| Time | User-controlled UTC propagation time |
+| View | Interactive 3D orbital field with object inspection and class filtering |
+| Ground relation | Selected-object geometry interpreted from an Earth observer frame |
+
+The production engine can reuse a recent or stale browser-cached catalog when the upstream catalog is unavailable. The interface identifies that state rather than presenting cached data as current.
+
+## What this instrument helps answer
+
+- How do low, medium, geosynchronous, and higher orbital regimes separate spatially?
+- How does the visible configuration change when the propagation time changes?
+- Which properties belong to the catalog record, and which are derived by the propagation model?
+- How does an object’s orbital geometry change when viewed in relation to a point on Earth?
+
+## Interpretation
+
+Displayed positions are propagated from general perturbation elements. They are not precision ephemerides and are not authoritative space-surveillance positions. Element age, source quality, and model limits vary by object.
+
+This distinction is part of the instrument, not a footnote: **catalog state and modeled state are related, but they are not the same evidence.**
+
+## Operations
+
+**Public instrument**  
 https://geogeeklab.github.io/orbital-commons/
 
-## Runtime
+The entry repository mounts the production runtime from `GeoGeekLab/GeoGeekLab.github.io`, pinned to commit `d949bd75870bfd49f6d12b297e6cca02de107f9c`. Runtime upgrades are deliberate; they do not follow the source repository automatically.
 
-The production runtime is pinned to a specific commit of `GeoGeekLab/GeoGeekLab.github.io`. See `PRODUCTION.md` for the exact baseline, data contract, interpretation limits, and deployment policy.
+See [`PRODUCTION.md`](./PRODUCTION.md) for the runtime baseline, data contract, interpretation limits, and deployment policy.
 
-## Local shell
+For a local entry shell:
 
 ```bash
 python -m http.server 8000
 ```
 
-Open `http://localhost:8000`.
+Then open `http://localhost:8000`.
 
-The instrument requires network access for its pinned runtime and declared upstream data sources.
+---
 
-## Deployment
-
-Pushes to `main` deploy through `.github/workflows/pages.yml`. Static production-contract checks run before the Pages artifact is uploaded.
-
-Third-party software and data remain subject to their respective terms and licenses. This repository does not introduce a project license that is absent from the source project.
+Part of the **GeoGeek Observatory** — *Geo to see. Geek to build.*
