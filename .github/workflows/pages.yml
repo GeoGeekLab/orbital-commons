@@ -23,80 +23,78 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Verify source lock
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          lock = json.loads(Path('SOURCE.json').read_text())
-          sha = lock.get('source_commit', '')
-          if lock.get('role') != 'entrypoint':
-              raise SystemExit('SOURCE.json must declare role=entrypoint')
-          if len(sha) != 40 or any(c not in '0123456789abcdef' for c in sha.lower()):
-              raise SystemExit('SOURCE.json contains an invalid source_commit')
-          for name in ('index.html', 'PRODUCTION.md'):
-              if sha not in Path(name).read_text():
-                  raise SystemExit(f'{name} does not reference locked source commit {sha}')
-          print(f'Locked upstream: {lock["source_repository"]}@{sha}')
-          PY
-      - name: Static contract checks
+
+      - name: Verify entrypoint contract
         shell: bash
         run: |
           set -euo pipefail
-          test -s index.html
-          grep -qi '<!doctype html>' index.html
-          grep -q 'PRODUCTION' index.html
-      - name: Capture instrument figure and audit links
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          lock=json.loads(Path('SOURCE.json').read_text())
+          sha=lock.get('source_commit','')
+          if lock.get('role')!='entrypoint': raise SystemExit('SOURCE.json must declare role=entrypoint')
+          if lock.get('instrument')!='orbit': raise SystemExit('SOURCE.json must declare instrument=orbit')
+          if len(sha)!=40 or any(c not in '0123456789abcdef' for c in sha.lower()): raise SystemExit('invalid source_commit')
+          for name in ('index.html','PRODUCTION.md'):
+              if sha not in Path(name).read_text(): raise SystemExit(f'{name} does not reference {sha}')
+          PY
+          grep -F 'https://geogeeklab.github.io/core/observatory-entry.js' index.html
+          grep -F 'PRODUCTION RUNTIME / SAME-ORIGIN' index.html
+          ! grep -F 'cdn.jsdelivr.net/gh/GeoGeekLab/GeoGeekLab.github.io' index.html
+          ! grep -F 'celestrak.org/NORAD/elements/gp.php' index.html
+
+      - name: Install browser QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix /tmp/geogeek-pw --no-package-lock --no-save playwright@1.55.0 >/tmp/playwright-npm.log 2>&1
+          /tmp/geogeek-pw/node_modules/.bin/playwright install --with-deps chromium
+          cat >/tmp/instrument-audit.cjs <<'JS'
+          const { chromium, request } = require('/tmp/geogeek-pw/node_modules/playwright');
+          const [url, selector, screenshot] = process.argv.slice(2);
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage({viewport:{width:1600,height:800}});
+            const pageErrors=[];
+            page.on('pageerror',e=>pageErrors.push(String(e.message||e)));
+            const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
+            if(!response||response.status()>=400) throw new Error(`navigation failed: ${response?.status()}`);
+            await page.waitForFunction(()=>window.GeoProviderStability?.installed===true && window.GeoDataSupply?.installed===true,null,{timeout:45000});
+            await page.locator(selector).first().waitFor({state:'visible',timeout:45000});
+            const errors=await page.locator('.instrument-error').allTextContents();
+            if(errors.length) throw new Error(`instrument error: ${errors.join(' | ')}`);
+            const stageText=(await page.locator('#instrumentStage').innerText()).replace(/\s+/g,' ');
+            if(/CelesTrak HTTP 403|runtime unavailable|runtime failed/i.test(stageText)) throw new Error(`runtime health text: ${stageText.slice(0,300)}`);
+            const supply=await page.evaluate(()=>window.GeoDataSupply?.describe?.('orbit-active'));
+            if(!supply||supply.transport!=='same-origin-snapshot') throw new Error(`unexpected orbit transport: ${JSON.stringify(supply)}`);
+            if(pageErrors.length) console.log('PAGE_ERRORS='+JSON.stringify(pageErrors));
+            if(screenshot) await page.screenshot({path:screenshot,fullPage:false});
+            const links=await page.locator('a[href]').evaluateAll(nodes=>nodes.map(a=>a.href).filter(h=>/^https?:/i.test(h)));
+            const api=await request.newContext({ignoreHTTPSErrors:true});
+            for(const href of [...new Set(links)]){
+              if(new URL(href).hostname!=='geogeeklab.github.io') continue;
+              const r=await api.get(href,{timeout:10000,failOnStatusCode:false,maxRedirects:8});
+              if(r.status()>=400) throw new Error(`first-party link ${r.status()}: ${href}`);
+            }
+            await api.dispose(); await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
+
+      - name: Capture and verify local entry
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p assets
-          npx --yes playwright@1.55.0 install --with-deps chromium
           python3 -m http.server 8000 >/tmp/geogeek-http.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          for _ in $(seq 1 20); do
-            if curl --fail --silent http://127.0.0.1:8000/ >/dev/null; then
-              break
-            fi
-            sleep 0.5
-          done
-          npx --yes playwright@1.55.0 screenshot \
-            --viewport-size "1600,800" \
-            --wait-for-timeout 15000 \
-            http://127.0.0.1:8000/ assets/instrument.png
+          for _ in $(seq 1 20); do if curl --fail --silent http://127.0.0.1:8000/ >/dev/null; then break; fi; sleep .5; done
+          node /tmp/instrument-audit.cjs 'http://127.0.0.1:8000/' '.orbit-v2, .orbital-lab' 'assets/instrument.png'
           test -s assets/instrument.png
-          npm install --no-save --no-package-lock playwright@1.55.0 >/tmp/playwright-npm.log 2>&1
-          cat > instrument-link-audit.cjs <<'JS'
-          const { chromium, request } = require('playwright');
-          (async () => {
-            const browser = await chromium.launch({ headless: true });
-            const page = await browser.newPage({ viewport: { width: 1600, height: 800 } });
-            await page.goto('http://127.0.0.1:8000/', { waitUntil: 'domcontentloaded', timeout: 60000 });
-            await page.waitForTimeout(12000);
-            const links = await page.locator('a[href]').evaluateAll(nodes => nodes.map(a => ({
-              text: (a.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 120),
-              href: a.href
-            })).filter(x => /^https?:/i.test(x.href)));
-            const unique = [...new Map(links.map(x => [x.href, x])).values()];
-            console.log('INSTRUMENT_LINK_COUNT=' + unique.length);
-            const api = await request.newContext({ ignoreHTTPSErrors: true });
-            await Promise.all(unique.map(async link => {
-              try {
-                const response = await api.get(link.href, { timeout: 8000, failOnStatusCode: false, maxRedirects: 8 });
-                console.log(`INSTRUMENT_LINK status=${response.status()} href=${link.href} text=${JSON.stringify(link.text)}`);
-              } catch (error) {
-                console.log(`INSTRUMENT_LINK status=ERROR href=${link.href} text=${JSON.stringify(link.text)} error=${JSON.stringify(String(error.message || error))}`);
-              }
-            }));
-            await api.dispose();
-            await browser.close();
-          })().catch(error => { console.error(error); process.exit(1); });
-          JS
-          node instrument-link-audit.cjs
-          rm -f instrument-link-audit.cjs
-          rm -rf node_modules
+          curl --fail --silent --show-error --location 'https://geogeeklab.github.io/orbital/data/active.meta.json' -o /tmp/orbit-meta.json
+          jq -e '(.fetchedAt|type=="string") and (.sha256|type=="string") and ((.recordCount // 0) > 0)' /tmp/orbit-meta.json >/dev/null
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
@@ -108,14 +106,15 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
-      - name: Verify public Pages endpoint
+
+      - name: Verify deployed public instrument
         shell: bash
         run: |
           set -euo pipefail
           url='${{ steps.deployment.outputs.page_url }}'
           curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "$url" -o /tmp/public-index.html
-          grep -qi '<!doctype html>' /tmp/public-index.html
           source_sha="$(jq -r '.source_commit' SOURCE.json)"
           grep -q "$source_sha" /tmp/public-index.html
-          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${url%/}/assets/instrument.png" -o /tmp/public-instrument.png
+          node /tmp/instrument-audit.cjs "$url" '.orbit-v2, .orbital-lab' ''
+          curl --fail --silent --show-error --location "${url%/}/assets/instrument.png" -o /tmp/public-instrument.png
           test -s /tmp/public-instrument.png
