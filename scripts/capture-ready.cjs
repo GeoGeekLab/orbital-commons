@@ -42,6 +42,21 @@ async function capture() {
           !/INITIALIZING|LOADING/.test(readout) &&
           canvas?.width > 300 && canvas?.height > 200;
       }, null, {timeout:65000});
+      // Show a populated spacecraft inspector as part of the instrument view.
+      const search = page.locator('#orbitSearch');
+      await search.fill('25544');
+      let hit = page.locator('#orbitSearchResults [data-search-index]').first();
+      if (await hit.count() === 0) {
+        await search.fill('STARLINK');
+        hit = page.locator('#orbitSearchResults [data-search-index]').first();
+      }
+      assert(await hit.count() > 0, 'No active spacecraft found for inspector');
+      await hit.click();
+      await page.waitForFunction(() => {
+        const name = document.querySelector('#orbitSelectedName')?.textContent || '';
+        const altitude = document.querySelector('#orbitAltitude')?.textContent || '';
+        return Boolean(name && name !== 'NONE' && /km/.test(altitude));
+      }, null, {timeout:20000});
       const transport = await page.evaluate(() => window.GeoDataSupply.describe('orbit-active')?.transport);
       assert.equal(transport, 'same-origin-snapshot');
     } else if (slug === 'earth-pulse') {
