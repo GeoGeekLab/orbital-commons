@@ -5,11 +5,12 @@
 ## Runtime
 
 - Source repository: `GeoGeekLab/GeoGeekLab.github.io`
-- Tested source revision: `de142ef7a2002498b01fae22ff8734b42475de9c`
-- Runtime release: `20261004b`
+- Tested source revision: `12743de0f7d0e900031ec2cbbe17551255e271a5`
+- Bootstrap asset release: `20261004b` (shared loader constant; distinct from the Lab HTML release)
 - Production channel: `https://geogeeklab.github.io/`
 - Shared bootstrap: `/core/observatory-entry.js`
 - Orbital runtime: `/orbital/orbital-engine.js`
+- Optional Lab enhancements: `/orbital/orbital-enhancements-v3.js`, `/orbital/orbit-round2.js` and their CSS
 - Propagation worker: `/orbital/orbit-worker.js`
 - Provider control: `/core/provider-stability.js` + `/core/data-supply.js`
 
@@ -24,3 +25,9 @@ CelesTrak active GP/OMM data is refreshed by the main-site scheduled data-supply
 ## Release checks
 
 The repository validates the source revision, shared bootstrap reference, Chromium instrument mount, absence of `.instrument-error`, provider/Data Supply installation, `same-origin-snapshot` transport, instrument screenshot, Pages deployment, and the deployed public endpoint.
+
+## Lab synchronization (20261011v107watercache1)
+
+The standalone entrypoint loads the optional Lab orbital controls before mounting the common production bootstrap. This reconciles the standalone controls with the updated Lab workspace; failure of an enhancement must not block the base instrument. The referenced source SHA records the examined main-site tree, **not** a guarantee that an origin-served asset remains immutable. GitHub Pages serves the current deployed bytes from the shared origin.
+
+Lab reference: https://geogeeklab.github.io/lab.html?release=20261011v107watercache1
