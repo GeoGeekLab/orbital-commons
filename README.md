@@ -69,7 +69,7 @@ The Lab query parameter `release=20261011v107watercache1` identifies the Lab HTM
 **Live instrument:** https://geogeeklab.github.io/orbital-commons/
 
 Source runtime: [`GeoGeekLab/GeoGeekLab.github.io`](https://github.com/GeoGeekLab/GeoGeekLab.github.io)  
-Pinned revision: [`SOURCE.json`](./SOURCE.json)  
+Source reference manifest: [`SOURCE.json`](./SOURCE.json)  
 Production contract: [`PRODUCTION.md`](./PRODUCTION.md)
 
 *GeoGeek note — an orbit is a relation among state, epoch, reference frame, and observer.*
