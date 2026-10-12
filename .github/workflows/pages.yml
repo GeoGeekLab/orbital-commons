@@ -97,7 +97,8 @@ jobs:
           set -euo pipefail
           mkdir -p assets
           qa_url='https://geogeeklab.github.io/orbital-commons/?qa=pending'
-          node /tmp/instrument-audit.cjs "$qa_url" '.orbit-v2, .orbital-lab' 'assets/instrument.png' '1'
+          node /tmp/instrument-audit.cjs "$qa_url" '.orbit-v2, .orbital-lab' '' '1'
+          node scripts/capture-ready.cjs "$qa_url" assets/instrument.png overview 1
           test -s assets/instrument.png
           curl --fail --silent --show-error --location 'https://geogeeklab.github.io/orbital/data/active.meta.json' -o /tmp/orbit-meta.json
           jq -e '(.fetchedAt|type=="string") and (.sha256|type=="string") and ((.recordCount // 0) > 0)' /tmp/orbit-meta.json >/dev/null
