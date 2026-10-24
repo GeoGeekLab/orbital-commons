@@ -44,3 +44,5 @@ The [GeoGeek Observatory source](https://github.com/GeoGeekLab/GeoGeekLab.github
 **Instrument record:** https://geogeeklab.github.io/records/lab-l04.html
 
 *GeoGeek note — an orbit is a relation among state, epoch, reference frame, and observer.*
+
+**“星汉灿烂，若出其里” -- 曹操《观沧海》**
