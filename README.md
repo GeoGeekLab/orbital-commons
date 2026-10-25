@@ -2,7 +2,7 @@
 
 <!-- GeoGeekLab VIS: BEGIN -->
 <p align="center">
-  <a href="https://github.com/GeoGeekLab/geogeeklab-visual-identity/tree/main/logos/scientific-instruments/official-candidates-v1/orbital-commons"><img src="https://raw.githubusercontent.com/GeoGeekLab/geogeeklab-visual-identity/main/logos/scientific-instruments/official-candidates-v1/orbital-commons/readme-hero.svg" alt="Orbital Commons — scientific instrument visual identity (conceptual orbit geometry)" width="720"></a>
+  <img src="https://raw.githubusercontent.com/GeoGeekLab/geogeeklab-visual-identity/main/readme-artwork/v3/orbital-commons/readme-artwork.webp" alt="Orbital Commons Earth and satellite orbit symbol" width="390">
 </p>
 <!-- GeoGeekLab VIS: END -->
 
