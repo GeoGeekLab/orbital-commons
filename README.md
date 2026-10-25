@@ -1,5 +1,11 @@
 # Orbital Commons
 
+<!-- GeoGeekLab VIS: BEGIN -->
+<p align="center">
+  <a href="https://github.com/GeoGeekLab/geogeeklab-visual-identity/tree/main/logos/scientific-instruments/official-candidates-v1/orbital-commons"><img src="https://raw.githubusercontent.com/GeoGeekLab/geogeeklab-visual-identity/main/logos/scientific-instruments/official-candidates-v1/orbital-commons/readme-hero.svg" alt="Orbital Commons — scientific instrument visual identity (conceptual orbit geometry)" width="720"></a>
+</p>
+<!-- GeoGeekLab VIS: END -->
+
 **Orbital catalog · SGP4/SDP4 propagation · observer geometry**
 
 *Orbital Commons* presents the active satellite population as an interactive Earth-orbit field. CelesTrak mean elements, UTC propagation time, orbital regime, and ground-based observation geometry meet in a single workspace.
